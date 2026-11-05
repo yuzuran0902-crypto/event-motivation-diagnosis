@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f4efdf" />
+    <meta
+      name="description"
+      content="イベントをやりたくなる本当の理由を、つよびおたく・無重力・ナポレオン・消臭力の4タイプで診断します。"
+    />
+    <meta property="og:title" content="なぜ、イベントをやりたいの？｜イベント開催欲求診断" />
+    <meta
+      property="og:description"
+      content="12の場面を選んで、あなたのイベント開催欲求を4タイプで可視化。"
+    />
+    <meta property="og:type" content="website" />
+    <title>なぜ、イベントをやりたいの？｜イベント開催欲求診断</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">本文へ移動</a>
+
+    <div class="grain" aria-hidden="true"></div>
+    <header class="site-header">
+      <a class="wordmark" href="#top" aria-label="イベント開催欲求診断 トップへ">
+        <span class="wordmark-mark">欲</span>
+        <span>EVENT<br />MOTIVE LAB.</span>
+      </a>
+      <p class="header-note">NON-SCIENTIFIC / HIGHLY USEFUL</p>
+    </header>
+
+    <main id="main">
+      <section class="hero screen is-active" id="top" data-screen="intro">
+        <div class="orbit orbit-one" aria-hidden="true"></div>
+        <div class="orbit orbit-two" aria-hidden="true"></div>
+
+        <div class="hero-copy">
+          <p class="eyebrow"><span>12 QUESTIONS</span> / 4 MOTIVES</p>
+          <h1>
+            なぜ、イベントを<br />
+            <em>やりたい</em>の？
+          </h1>
+          <p class="hero-lead">
+            イベントを始めるエンジンは、だいたい4つ。<br />
+            あなたの「やりたい」は、どこから来てる？
+          </p>
+          <button class="primary-button" id="startButton" type="button">
+            <span>診断をはじめる</span>
+            <span aria-hidden="true">↗</span>
+          </button>
+          <p class="micro-copy">所要時間 約2分・登録不要</p>
+        </div>
+
+        <div class="hero-poster" aria-label="4つのタイプのポスター">
+          <div class="poster-card poster-otaku">
+            <span class="poster-number">01</span>
+            <span class="poster-icon" aria-hidden="true">✹</span>
+            <strong>つよび<br />おたく</strong>
+            <small>好きが燃料。</small>
+          </div>
+          <div class="poster-card poster-zero">
+            <span class="poster-number">02</span>
+            <span class="poster-icon" aria-hidden="true">◯</span>
+            <strong>無重力</strong>
+            <small>ノリが重力に勝つ。</small>
+          </div>
+          <div class="poster-card poster-napoleon">
+            <span class="poster-number">03</span>
+            <span class="poster-icon" aria-hidden="true">⚑</span>
+            <strong>ナポレオン</strong>
+            <small>同志よ、集まれ。</small>
+          </div>
+          <div class="poster-card poster-shoshu">
+            <span class="poster-number">04</span>
+            <span class="poster-icon" aria-hidden="true">◎</span>
+            <strong>消臭力</strong>
+            <small>主語は「私」。</small>
+          </div>
+        </div>
+      </section>
+
+      <section class="quiz screen" data-screen="quiz" aria-labelledby="questionTitle">
+        <div class="quiz-shell">
+          <div class="quiz-topline">
+            <button class="text-button" id="backButton" type="button">← ひとつ戻る</button>
+            <p><span id="currentNumber">01</span> / <span id="totalNumber">12</span></p>
+          </div>
+
+          <div
+            class="progress-track"
+            role="progressbar"
+            aria-label="診断の進捗"
+            aria-valuemin="1"
+            aria-valuemax="12"
+            aria-valuenow="1"
+          >
+            <span id="progressBar"></span>
+          </div>
+
+          <div class="question-stage" aria-live="polite">
+            <p class="question-kicker" id="questionKicker">SCENE 01</p>
+            <h2 id="questionTitle"></h2>
+            <div class="answer-grid" id="answerGrid"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="result screen" data-screen="result" aria-labelledby="resultTitle">
+        <div class="result-shell">
+          <div class="result-heading">
+            <p class="eyebrow"><span>YOUR EVENT MOTIVE</span> / RESULT</p>
+            <p class="result-label">あなたの開催欲求は——</p>
+            <h2 id="resultTitle"></h2>
+            <p class="result-catch" id="resultCatch"></p>
+          </div>
+
+          <div class="result-grid">
+            <article class="result-main-card" id="resultMainCard">
+              <div class="result-symbol" id="resultSymbol" aria-hidden="true"></div>
+              <p class="result-description" id="resultDescription"></p>
+              <blockquote id="resultQuote"></blockquote>
+              <div class="hybrid-note" id="hybridNote"></div>
+            </article>
+
+            <aside class="score-card" aria-labelledby="scoreTitle">
+              <div class="score-head">
+                <h3 id="scoreTitle">欲求の配合</h3>
+                <span>BLEND</span>
+              </div>
+              <div id="scoreBars"></div>
+              <p class="score-note">※回答全体に占める各タイプの割合</p>
+            </aside>
+          </div>
+
+          <div class="event-hints">
+            <div class="section-number" aria-hidden="true">NEXT / 01</div>
+            <div>
+              <p class="question-kicker">YOUR BEST EVENT FORMULA</p>
+              <h3>あなたが動き出しやすい<br />イベントのつくり方</h3>
+            </div>
+            <ul id="resultHints"></ul>
+          </div>
+
+          <div class="result-actions">
+            <button class="primary-button" id="shareButton" type="button">
+              <span>結果をシェアする</span><span aria-hidden="true">↗</span>
+            </button>
+            <button class="secondary-button" id="restartButton" type="button">もう一度診断する</button>
+          </div>
+
+          <p class="toast" id="toast" role="status" aria-live="polite"></p>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>EVENT MOTIVE LAB. © 2026</p>
+      <p>これは性格を決めつけるものではなく、いまの開催動機を言葉にするための診断です。</p>
+    </footer>
+
+    <noscript>この診断にはJavaScriptが必要です。ブラウザの設定から有効にしてください。</noscript>
+    <script src="app.js"></script>
+  </body>
+</html>
