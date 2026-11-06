@@ -670,9 +670,17 @@ h1 em::after {
 
 .result-actions {
   display: flex;
+  align-items: center;
   justify-content: center;
   gap: 18px;
   padding-top: 42px;
+}
+
+.result-restart {
+  min-width: max-content;
+  margin-left: 4px;
+  font-size: 0.86rem;
+  font-weight: 700;
 }
 
 .secondary-button {
@@ -840,6 +848,11 @@ footer p {
   .result-actions .primary-button,
   .result-actions .secondary-button {
     width: 100%;
+  }
+
+  .result-restart {
+    align-self: center;
+    margin: 8px 0 0;
   }
 
   footer {

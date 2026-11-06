@@ -176,6 +176,7 @@ const state = {
   current: 0,
   answers: [],
   result: null,
+  resultImagePromise: null,
 };
 
 const screens = [...document.querySelectorAll("[data-screen]")];
@@ -299,21 +300,251 @@ function renderResult() {
     resultHints.appendChild(item);
   });
 
+  state.resultImagePromise = createResultImageBlob();
+
   const params = new URLSearchParams(window.location.search);
   params.set("result", primary);
   history.replaceState(null, "", `${window.location.pathname}?${params.toString()}`);
 }
 
+function wrapCanvasText(ctx, text, maxWidth) {
+  const lines = [];
+  let line = "";
+
+  [...text].forEach((character) => {
+    const testLine = line + character;
+    if (line && ctx.measureText(testLine).width > maxWidth) {
+      lines.push(line);
+      line = character;
+    } else {
+      line = testLine;
+    }
+  });
+
+  if (line) lines.push(line);
+  return lines;
+}
+
+function drawCanvasLines(ctx, lines, x, y, lineHeight, maxLines = lines.length) {
+  lines.slice(0, maxLines).forEach((line, index) => {
+    ctx.fillText(line, x, y + index * lineHeight);
+  });
+}
+
+async function createResultImageBlob() {
+  if (!state.result) throw new Error("診断結果がありません");
+  if (document.fonts?.ready) {
+    await Promise.race([
+      document.fonts.ready,
+      new Promise((resolve) => window.setTimeout(resolve, 1500)),
+    ]);
+  }
+
+  const { primary, secondary, scores } = state.result;
+  const data = TYPES[primary];
+  const secondaryData = TYPES[secondary];
+  const canvas = document.createElement("canvas");
+  canvas.width = 1080;
+  canvas.height = 1350;
+
+  const ctx = canvas.getContext("2d");
+  const ink = "#171713";
+  const paper = "#f4efdf";
+  const white = "#fffdf4";
+  const blue = "#3157ff";
+  const typeColor = data.color;
+  const typeInk = primary === "shoshu" ? white : ink;
+
+  ctx.fillStyle = paper;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.strokeStyle = ink;
+  ctx.lineWidth = 4;
+  ctx.strokeRect(38, 38, 1004, 1274);
+
+  ctx.fillStyle = "#ffc72e";
+  ctx.beginPath();
+  ctx.arc(92, 92, 32, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = ink;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = '900 30px "Zen Kaku Gothic New", sans-serif';
+  ctx.fillText("欲", 92, 92);
+
+  ctx.textAlign = "left";
+  ctx.font = '500 22px "DM Mono", monospace';
+  ctx.fillText("EVENT MOTIVE LAB.", 144, 82);
+  ctx.font = '400 17px "DM Mono", monospace';
+  ctx.fillText("12 QUESTIONS / 4 MOTIVES", 144, 108);
+
+  ctx.font = '700 28px "Zen Kaku Gothic New", sans-serif';
+  ctx.fillText("あなたのイベント開催欲求は——", 68, 185);
+
+  ctx.fillStyle = typeColor;
+  ctx.fillRect(68, 222, 944, 390);
+  ctx.strokeStyle = ink;
+  ctx.strokeRect(68, 222, 944, 390);
+
+  ctx.fillStyle = typeInk;
+  ctx.globalAlpha = 0.2;
+  ctx.textAlign = "right";
+  ctx.font = '900 260px "Zen Kaku Gothic New", sans-serif';
+  ctx.fillText(data.symbol, 980, 385);
+  ctx.globalAlpha = 1;
+
+  ctx.textAlign = "left";
+  ctx.fillStyle = typeInk;
+  ctx.font = '500 20px "DM Mono", monospace';
+  ctx.fillText("YOUR EVENT MOTIVE", 108, 275);
+  ctx.font = '900 86px "Zen Kaku Gothic New", sans-serif';
+  ctx.fillText(data.short, 106, 392);
+  ctx.font = '900 28px "Zen Kaku Gothic New", sans-serif';
+  drawCanvasLines(ctx, wrapCanvasText(ctx, data.catch, 770), 108, 468, 48, 2);
+
+  ctx.strokeStyle = typeInk;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(108, 545);
+  ctx.lineTo(972, 545);
+  ctx.stroke();
+  ctx.font = '700 24px "Zen Kaku Gothic New", sans-serif';
+  drawCanvasLines(ctx, wrapCanvasText(ctx, data.quote, 820), 108, 580, 38, 2);
+
+  ctx.fillStyle = ink;
+  ctx.font = '500 19px "DM Mono", monospace';
+  ctx.fillText("MOTIVE BLEND", 68, 675);
+  ctx.font = '900 31px "Zen Kaku Gothic New", sans-serif';
+  ctx.fillText("欲求の配合", 68, 721);
+
+  Object.keys(TYPES)
+    .sort((a, b) => scores[b] - scores[a])
+    .forEach((key, index) => {
+      const y = 770 + index * 84;
+      const percentage = Math.round((scores[key] / QUESTIONS.length) * 100);
+      ctx.fillStyle = ink;
+      ctx.font = '700 23px "Zen Kaku Gothic New", sans-serif';
+      ctx.fillText(TYPES[key].short, 68, y);
+      ctx.textAlign = "right";
+      ctx.font = '500 22px "DM Mono", monospace';
+      ctx.fillText(`${percentage}%`, 1012, y);
+      ctx.textAlign = "left";
+
+      ctx.fillStyle = white;
+      ctx.strokeStyle = ink;
+      ctx.lineWidth = 3;
+      ctx.fillRect(302, y - 22, 610, 28);
+      ctx.strokeRect(302, y - 22, 610, 28);
+      ctx.fillStyle = TYPES[key].color;
+      ctx.fillRect(304, y - 20, (606 * percentage) / 100, 24);
+    });
+
+  ctx.fillStyle = white;
+  ctx.strokeStyle = ink;
+  ctx.lineWidth = 3;
+  ctx.fillRect(68, 1090, 944, 120);
+  ctx.strokeRect(68, 1090, 944, 120);
+  ctx.fillStyle = blue;
+  ctx.font = '500 17px "DM Mono", monospace';
+  ctx.fillText("SECOND MOTIVE", 96, 1126);
+  ctx.fillStyle = ink;
+  ctx.font = '900 25px "Zen Kaku Gothic New", sans-serif';
+  ctx.fillText(`副タイプは「${secondaryData.short}」`, 96, 1173);
+
+  ctx.font = '500 17px "DM Mono", monospace';
+  ctx.fillText("EVENT MOTIVE LAB.  /  イベント開催欲求診断", 68, 1250);
+  ctx.font = '400 14px "DM Mono", monospace';
+  ctx.fillText("yuzuran0902-crypto.github.io/event-motivation-diagnosis", 68, 1284);
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) resolve(blob);
+      else reject(new Error("画像を生成できませんでした"));
+    }, "image/png");
+  });
+}
+
+function downloadResultImage(blob, fileName) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+async function saveResultImage() {
+  const button = document.getElementById("saveImageButton");
+  const originalLabel = button.firstElementChild.textContent;
+  button.disabled = true;
+  button.firstElementChild.textContent = "画像を作成中…";
+
+  try {
+    const blob = await (state.resultImagePromise || createResultImageBlob());
+    const fileName = `event-motive-${state.result.primary}.png`;
+    const file = new File([blob], fileName, { type: "image/png" });
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    if (isMobile && navigator.canShare?.({ files: [file] })) {
+      showToast("共有メニューで「画像を保存」を選んでください");
+      await navigator.share({ files: [file], title: "イベント開催欲求診断の結果" });
+    } else if (window.showSaveFilePicker) {
+      const handle = await window.showSaveFilePicker({
+        suggestedName: fileName,
+        startIn: "pictures",
+        types: [{ description: "PNG画像", accept: { "image/png": [".png"] } }],
+      });
+      const writable = await handle.createWritable();
+      await writable.write(blob);
+      await writable.close();
+      showToast("結果画像を保存しました");
+    } else if (navigator.canShare?.({ files: [file] })) {
+      await navigator.share({ files: [file], title: "イベント開催欲求診断の結果" });
+    } else {
+      downloadResultImage(blob, fileName);
+      showToast("結果画像をPNGでダウンロードしました");
+    }
+  } catch (error) {
+    if (error.name !== "AbortError") {
+      console.error(error);
+      showToast("保存できませんでした。もう一度お試しください");
+    }
+  } finally {
+    button.disabled = false;
+    button.firstElementChild.textContent = originalLabel;
+  }
+}
+
 async function shareResult() {
   const data = TYPES[state.result.primary];
+  const button = document.getElementById("shareButton");
+  const originalLabel = button.textContent;
   const shareData = {
     title: "イベント開催欲求診断",
     text: `私のイベント開催欲求は「${data.name}」でした！\n${data.catch}`,
     url: window.location.href,
   };
 
+  button.disabled = true;
+  button.textContent = "画像を作成中…";
+
   try {
-    if (navigator.share) {
+    const blob = await (state.resultImagePromise || createResultImageBlob());
+    const file = new File([blob], `event-motive-${state.result.primary}.png`, {
+      type: "image/png",
+    });
+
+    if (navigator.canShare?.({ files: [file] })) {
+      await navigator.share({
+        files: [file],
+        title: shareData.title,
+        text: `${shareData.text}\n${shareData.url}`,
+      });
+      showToast("結果画像のシェア画面を開きました");
+    } else if (navigator.share) {
       await navigator.share(shareData);
       showToast("シェア画面を開きました");
     } else {
@@ -324,6 +555,9 @@ async function shareResult() {
     if (error.name !== "AbortError") {
       showToast("シェアできませんでした。URLをコピーしてお使いください");
     }
+  } finally {
+    button.disabled = false;
+    button.textContent = originalLabel;
   }
 }
 
@@ -338,6 +572,7 @@ function restart() {
   state.current = 0;
   state.answers = [];
   state.result = null;
+  state.resultImagePromise = null;
   history.replaceState(null, "", window.location.pathname);
   renderQuestion();
   showScreen("intro");
@@ -356,6 +591,7 @@ backButton.addEventListener("click", () => {
 });
 
 document.getElementById("shareButton").addEventListener("click", shareResult);
+document.getElementById("saveImageButton").addEventListener("click", saveResultImage);
 document.getElementById("restartButton").addEventListener("click", restart);
 
 const sharedResult = new URLSearchParams(window.location.search).get("result");
