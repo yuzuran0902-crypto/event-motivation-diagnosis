@@ -676,6 +676,15 @@ h1 em::after {
   padding-top: 42px;
 }
 
+#profileReturnButton {
+  background: linear-gradient(135deg, #56b8e7, #8c92e4 30%, #ed8fbd 62%, #ffd25e);
+  color: #172139;
+}
+
+#profileReturnButton[hidden] {
+  display: none;
+}
+
 .result-restart {
   min-width: max-content;
   margin-left: 4px;

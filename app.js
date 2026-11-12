@@ -573,10 +573,33 @@ function restart() {
   state.answers = [];
   state.result = null;
   state.resultImagePromise = null;
-  history.replaceState(null, "", window.location.pathname);
+  const params = new URLSearchParams(window.location.search);
+  params.delete("result");
+  history.replaceState(null, "", `${window.location.pathname}${params.size ? `?${params.toString()}` : ""}`);
   renderQuestion();
   showScreen("intro");
 }
+
+const allowedProfileReturnUrl = "https://yuzuran0902-crypto.github.io/nexus-member-profile-page/";
+const requestedReturnUrl = new URLSearchParams(window.location.search).get("return_to");
+let profileReturnUrl = null;
+try {
+  const parsedReturnUrl = requestedReturnUrl ? new URL(requestedReturnUrl) : null;
+  if (parsedReturnUrl && parsedReturnUrl.origin + parsedReturnUrl.pathname === allowedProfileReturnUrl) {
+    profileReturnUrl = parsedReturnUrl;
+  }
+} catch {
+  profileReturnUrl = null;
+}
+
+const profileReturnButton = document.getElementById("profileReturnButton");
+if (profileReturnUrl) profileReturnButton.hidden = false;
+profileReturnButton.addEventListener("click", () => {
+  if (!profileReturnUrl || !state.result) return;
+  profileReturnUrl.searchParams.set("view", "edit");
+  profileReturnUrl.searchParams.set("motivationResult", state.result.primary);
+  window.location.assign(profileReturnUrl.toString());
+});
 
 document.getElementById("startButton").addEventListener("click", () => {
   renderQuestion();
